@@ -1,0 +1,148 @@
+create database Employeedatabase
+USE Employeedatabase
+create table employee(
+	id INT,
+	name VARCHAR(20),
+	manager_id INT,
+	date_join VARCHAR(20)
+)
+create table details(
+	id int,
+	project varchar(20),
+	salary int 
+)
+insert into employee
+values(121,'kiran',221,'2019-08-01')
+insert into employee
+values(221,'mayu',996,'2018-09-11')
+insert into employee
+values(321,'abhi',876,'2017-12-28')
+insert into employee
+values(143,'para',221,'2023-19-12')
+insert into employee
+values(223,'nanam jindal',143,'2022-20-9')
+insert into employee
+values(143,'para',221,'2023-19-12')
+
+insert into details
+values(121,'P1',10000)
+insert into details
+values(221,'P2',20000)
+insert into details
+values(321,'P1',15000)
+insert into details
+values(143,'P1',29000)
+
+select *
+from employee
+select *
+from details
+
+--count employees who are in project P1
+select count(*) as cnt
+from employee e
+join details d
+on e.id=d.id
+where project='P1'
+
+--fetch and mark, peoples salaries level
+select e.name,d.salary,
+CASE
+	WHEN salary>=20000 then 'junior'
+	else 'senior'
+END AS level
+from employee e
+join details d
+on e.id=d.id
+
+--project wise count, in decreasing order
+select d.project,count(*) as cnt
+from employee e
+join details d
+on e.id=d.id
+group by d.project
+order by count(*) desc
+
+--select first name only and not second name
+SELECT 
+    CASE
+        WHEN CHARINDEX(' ', name) > 0 THEN SUBSTRING(name, 1, CHARINDEX(' ', name) - 1)
+        ELSE name
+    END AS firstname
+FROM employee;
+
+--return employee name even if salary record is not present
+select *
+from employee e
+left join details d
+on e.id=d.id
+
+select *
+from employee e
+right join details d
+on e.id=d.id
+--fetch employees who are also managers
+select name
+from employee
+where id in (
+	select manager_id
+	from employee
+)
+
+--find duplicate records
+select *,count(*) as cnt
+from employee
+group by id,name,manager_id,date_join
+having count(*)>1
+
+--fetch odd number managerid, union , even managerid
+select *
+from employee
+where manager_id%2=1
+union
+select *
+from employee
+where manager_id%2=0
+
+--select names whose salary is greater than 15k
+select e.name
+from employee e
+left join details d
+on e.id=d.id
+where d.salary>15000
+
+--select names ending with i
+select name
+from employee
+where name like '%i'
+
+--get highest salary from employees of every project
+select distinct name,salary
+from(
+	select e.name,d.salary,dense_rank()
+	over(partition by d.project order by d.salary desc) as rnk
+	from employee e
+	join details d
+	on e.id=d.id
+)x
+where rnk=1
+--select salaries of employees who joined between [2017-2019]
+select d.salary
+from employee e
+join details d
+on e.id=d.id
+where SUBSTRING(e.date_join,1,4) between 2017 AND 2019 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
