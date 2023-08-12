@@ -1,0 +1,226 @@
+create database practice1
+use practice1
+create table employee(empid int primary key,empname varchar(100), 
+department varchar(50),contactno bigint, emaildid varchar(100), empheadid int)
+insert into employee
+values(101	,'Isha',	'E-101',	'1234567890',	'isha@gmail.com',	105)
+insert into employee
+values(102	,'Priya',	'E-104',	'1234567891',	'priya@yahoo.com',	103)
+insert into employee
+values(103	,'Neha',	'E-101',	'1234567892',	'neha@gmail.com',	101)
+insert into employee
+values(104	,'Rahul',	'E-102',	'1234567893',	'rahul@yahoo.com',	105)
+insert into employee
+values(105	,'abhishek',	'E-101',	'1234567880',	'abhishek@gmail.com',102)
+create table empdept(deptid varchar(50) primary key,deptname varchar(100), dept_off varchar(100), depthead int foreign key references employee(empid))
+insert into empdept
+values('E-101'	,'HR',	'Monday'	,105)
+insert into empdept
+values('E-102'	,'Development'	,'Tuesday',	101)
+insert into empdept
+values('E-103'	,'Hous Keeping'	,'Saturday',	103)
+insert into empdept
+values('E-104'	,'Sales'	,'Sunday'	,104)
+insert into empdept
+values('E-105'	,'Purchase',	'Tuesday'	,104)
+
+create table empsalary(empid int foreign key references employee(empid), salary bigint, ispermanent varchar(3))
+insert into empsalary
+values(101,2000,'YES')
+insert into empsalary
+values(102,10000,'YES')
+insert into empsalary
+values(103,5000,'NO')
+insert into empsalary
+values(104,1900,'YES')
+insert into empsalary
+values(105,2300,'YES')
+
+create table empproject(empid int , projectid varchar(50) ,startyear int, endyear int)
+insert into empproject
+values(101	,'p-1'	,2010,	2010)
+insert into empproject
+values(102	,'p-2',	2010,	2012)
+insert into empproject
+values(103	,'p-1',	2013,2015)	
+insert into empproject
+values(104	,'p-4',		2014,	2015)
+insert into empproject
+values(105	,'p-4',	2015,2020)
+select *
+from employee
+select *
+from empdept
+select *
+from empsalary
+select *
+from empproject
+
+
+--1.   Select the department name of the company
+--which is assigned to the employee whose employee id is grater 103.
+select d.deptname
+from employee e
+join empdept d
+on e.department=d.deptid
+where e.empid>103
+--2.Select the name of the employee who is working under Abhishek
+select empid
+from employee
+where empheadid in (
+	select empid
+	from employee
+	where empname='abhishek')
+--3.select name of employee who is department head of HR
+select empname
+from employee
+where empid in (
+	select depthead
+	from empdept
+	where deptname='HR')
+--4. select names of employee head who is permanent
+select empname
+from employee e
+join empsalary s
+on e.empid=s.empid
+where s.ispermanent='YES' and e.empid in (select empheadid 
+											from employee
+											)
+--5. select name and email of depthead who is not permanent
+select empname,emaildid
+from employee
+where empid in (
+select depthead
+from empdept
+where depthead in (
+select empid
+from empsalary
+where ispermanent='NO'))
+
+--6. select employee whose department off is monday
+select *
+from employee e
+join empdept d
+on e.department=d.deptid
+where dept_off='Monday'
+
+--7. select details of employees working in development department
+select *
+from employee e
+join empdept d
+on e.department=d.deptid
+where deptname='Development'
+
+--8. select count of projects, which are starting and finishing on same day
+select count(projectid)
+from empproject
+where startyear=endyear
+
+--9.select top 3 salaries, along with employee name.
+select empname, salary
+from
+(
+	select e.empname,s.salary,dense_rank()
+	over(order by s.salary desc) as rnk
+	from employee e
+	join empsalary s
+	on e.empid=s.empid
+)x
+where rnk<=3;
+
+--10. find the projects in which permanent depthead is working on
+select empid, projectid
+from empproject
+where empid in (
+	select depthead
+	from empdept
+	where depthead in (
+		select empid
+		from empsalary
+		where ispermanent='YES'
+	)
+)
+--11. select employee id whose salary is greater than empheadid
+WITH result_cte AS (
+    SELECT e.empid, e.empheadid, s.salary
+    FROM employee e
+    JOIN empsalary s ON e.empid = s.empid
+)
+SELECT r1.empid
+from result_cte r1,result_cte r2
+where r1.empheadid=r2.empid and r1.salary>r2.salary
+
+--12 count of employee in each department
+select d.deptname,count(d.deptname) as count
+from employee e
+join empdept d
+on e.department=d.deptid
+group by d.deptname
+
+select *
+from employee
+select *
+from empdept
+select *
+from empsalary
+select *
+from empproject
+
+--13. give second highest salary
+select max(salary)
+from empsalary
+where salary <(select max(salary) from empsalary)
+
+--14.Highest salary in every department
+select department,salary
+from (
+	select e.department, s.salary,dense_rank() 
+	over(partition by e.department order by s.salary desc) as rnk
+	from employee e
+	join empsalary s
+	on e.empid=s.empid
+)x
+where rnk=1
+order by salary desc
+
+--15 label employees
+select e.empname,
+case
+	when s.salary<2000 then 'fresher'
+	when s.salary between 2000 and 5000 then 'experienced'
+	else 'professional'
+end as level
+from employee e
+join empsalary s
+on e.empid=s.empid
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
